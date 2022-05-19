@@ -3,8 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <!-- CSS only -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
 </head>
 <body>
 
+    <form action="/save" method="post" >
+        <input type="text" name="name" class="input form-control" placeholder="Username"/> <br/>
+        <input type="text" name="email" class="input form-control" placeholder="email"/> <br/>
+        <input type="text" name="password" class="input form-control" placeholder="password"/> <br/>
+        <input type="submit" value="Submit" class="btn btn-primary"/>
+    </form>
 </body>
 </html>
