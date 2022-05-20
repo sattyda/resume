@@ -1,14 +1,22 @@
 package Resume.Resume.controllers;
 
+import Resume.Resume.entity.MyError;
 import Resume.Resume.entity.User;
 import Resume.Resume.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
+import org.springframework.validation.beanvalidation.SpringValidatorAdapter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import javax.validation.Valid;
+
+import java.util.List;
 
 @Controller
 public class UserController {
@@ -24,7 +32,12 @@ public class UserController {
     }
 
     @GetMapping("/register")
-    public String register( Model model ){
+    public String register(Model model , MyError myError){
+
+        System.out.println(myError.getMessage());
+
+        model.addAttribute("error" , myError.getMessage());
+
         return "register";
     }
 
@@ -53,22 +66,21 @@ public class UserController {
     }
 
     @PostMapping("/save")
-    public String save(Model model , @RequestParam("name") String username, @RequestParam("password") String password, @RequestParam("email") String email ){
-        model.addAttribute("username" , username);
-        model.addAttribute("password" , password);
-        model.addAttribute("email" , email);
+    public String save(Model model , @Valid User user , BindingResult result){
+        if(result.hasErrors()){
+            List<ObjectError> ll =  result.getAllErrors();
 
-        User user = new User();
+            String err = "";
 
-        user.setEmail(email);
-        user.setPassword(password);
-        user.setName(username);
+            for( int i =0; i < ll.size(); i++  ){
+                err = ll.get(i).getDefaultMessage();
+                System.out.println( ll.get(i).getDefaultMessage() );
+            }
 
+            return "redirect:/register?message="+err;
+        }
         userService.save(user);
-
         model.addAttribute("id" , user.getId()+"hi" );
-
-
         return "save";
     }
 
