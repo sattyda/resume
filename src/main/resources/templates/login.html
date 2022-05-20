@@ -3,14 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+
 </head>
 <body>
 
     <form action="/loginsubmit" method="post">
-        <input type="email" name="email" placeholder="Enter email address" /> <br/>
-        <input type="password" name="password" placeholder="enter password" /> <br/>
-        <input type="submit" value="Submit" />
+        <input type="email" name="email" class="input form-control" placeholder="Enter email address" /> <br/>
+        <input type="password" name="password" class="input form-control" placeholder="enter password" /> <br/>
+        <input type="submit" value="Submit" class="btn btn-primary" />
     </form>
+
+    <ul th:each="err : ${error}">
+        <li th:text="${err}"></li><br/>
+    </ul>
 
 </body>
 </html>

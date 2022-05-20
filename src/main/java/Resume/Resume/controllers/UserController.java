@@ -1,5 +1,6 @@
 package Resume.Resume.controllers;
 
+import Resume.Resume.entity.LoginResponse;
 import Resume.Resume.entity.MyError;
 import Resume.Resume.entity.User;
 import Resume.Resume.services.UserService;
@@ -48,15 +49,19 @@ public class UserController {
         return "register";
     }
 
-    @GetMapping("/login/{logintype}")
-    public String adminlogin(Model model , @PathVariable("logintype") String type ){
-        if(type.equals("user")){
-            return "userlogin";
-        } else if(type.equals("admin")){
-            return "adminlogin";
-        } else {
-            return "login";
+    @GetMapping("/login")
+    public String adminlogin(Model model , MyError myError ){
+        String[] arr = {};
+
+        System.out.println( myError.getMessage() );
+        if(!    myError.getMessage().equals("")){
+            arr = myError.getMessage().split("___");
         }
+
+        model.addAttribute("error" , arr);
+
+        return "login";
+
     }
 
 
@@ -88,6 +93,31 @@ public class UserController {
         userService.save(user);
         model.addAttribute("id" , user.getId()+"hi" );
         return "save";
+    }
+
+
+    @PostMapping("/loginsubmit")
+    public String loginsubmit( Model model , @Valid User user , BindingResult result ){
+        if(result.hasErrors()){
+            List<ObjectError> ll =  result.getAllErrors();
+            String err = "";
+
+            for( int i =0; i < ll.size(); i++  ){
+
+                err = err + ll.get(i).getDefaultMessage() + "___" ;
+            }
+
+            return "redirect:/login?message="+err;
+        }
+
+        LoginResponse loginResponse = userService.login(user);
+
+        if(loginResponse.getStatus().equals("success")){
+            return "redirect:/home";
+        } else {
+            return "redirect:/login?message="+loginResponse.getMessage();
+        }
+
     }
 
 
