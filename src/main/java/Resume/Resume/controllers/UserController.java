@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -34,9 +35,15 @@ public class UserController {
     @GetMapping("/register")
     public String register(Model model , MyError myError){
 
-        System.out.println(myError.getMessage());
+        String[] arr = {};
 
-        model.addAttribute("error" , myError.getMessage());
+        System.out.println( myError.getMessage() );
+        if(!    myError.getMessage().equals("")){
+            arr = myError.getMessage().split("___");
+        }
+
+
+        model.addAttribute("error" , arr);
 
         return "register";
     }
@@ -66,15 +73,14 @@ public class UserController {
     }
 
     @PostMapping("/save")
-    public String save(Model model , @Valid User user , BindingResult result){
+    public String save( Model model , @Valid User user , BindingResult result ){
         if(result.hasErrors()){
             List<ObjectError> ll =  result.getAllErrors();
-
             String err = "";
 
             for( int i =0; i < ll.size(); i++  ){
-                err = ll.get(i).getDefaultMessage();
-                System.out.println( ll.get(i).getDefaultMessage() );
+
+                err = err + ll.get(i).getDefaultMessage() + "___" ;
             }
 
             return "redirect:/register?message="+err;
