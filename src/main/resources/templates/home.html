@@ -8,9 +8,10 @@
 </head>
 <body>
     <h1> </h1>
-    <h3 th:text="Hello, ${email}"></h3>
+    <h3>Hello, <span  th:text="${name}"></span></h3>
+    <h3>Your Email is <span  th:text="${email}"></span></h3>
 
-    <a href="/upload" class="btn btn-primary">  Upload </a> <br/>
-    <a href="/Logout" class="btn btn-warning right"> Logout </a>
+    <a href="/upload" class="btn btn-primary">  Upload </a> <br/><br/><br/><br/>
+    <a href="/logout" class="btn btn-warning right"> Logout </a>
 </body>
 </html>

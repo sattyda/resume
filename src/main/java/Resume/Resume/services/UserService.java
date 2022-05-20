@@ -57,4 +57,8 @@ public class UserService {
 
         return false;
     }
+
+    public void update(Long id, String mylink) {
+        userRepository.update( mylink , id);
+    }
 }

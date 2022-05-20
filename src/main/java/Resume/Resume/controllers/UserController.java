@@ -4,6 +4,7 @@ import Resume.Resume.entity.LoginResponse;
 import Resume.Resume.entity.MyError;
 import Resume.Resume.entity.User;
 import Resume.Resume.services.UserService;
+import lombok.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,10 +15,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,15 +30,26 @@ public class UserController {
     @Autowired
     UserService userService;
 
+    private String port = "8181";
+
     @GetMapping("/")
     public String index( Model model ){
         model.addAttribute("MyName" , "Sattyda");
-
         return "index";
     }
 
+    @GetMapping("/logout")
+    public String logout( HttpSession session ){
+        session.invalidate();
+        return "redirect:/home";
+    }
+
     @GetMapping("/register")
-    public String register(Model model , MyError myError){
+    public String register(Model model , MyError myError , HttpSession session){
+
+        if(session.getAttribute("isLoggedIn") != null && session.getAttribute("isLoggedIn").equals("Yes") ){
+            return "redirect:/home";
+        }
 
         String[] arr = {};
 
@@ -44,14 +58,17 @@ public class UserController {
             arr = myError.getMessage().split("___");
         }
 
-
         model.addAttribute("error" , arr);
-
         return "register";
     }
 
     @GetMapping("/login")
-    public String adminlogin(Model model , MyError myError ){
+    public String adminlogin(Model model , MyError myError , HttpSession session ){
+
+        if(session.getAttribute("isLoggedIn") != null && session.getAttribute("isLoggedIn").equals("Yes") ){
+            return "redirect:/home";
+        }
+
         String[] arr = {};
 
         System.out.println( myError.getMessage() );
@@ -62,7 +79,6 @@ public class UserController {
         model.addAttribute("error" , arr);
 
         return "login";
-
     }
 
 
@@ -84,6 +100,7 @@ public class UserController {
         if(session.getAttribute("isLoggedIn") == null || session.getAttribute("isLoggedIn").equals("No") ){
             return "redirect:/";
         }
+
         return "upload";
     }
 
@@ -115,18 +132,21 @@ public class UserController {
         if(!userService.save(user )){
             return "redirect:/register?message="+"Something went wrong. Maybe duplicate entry for user";
         } else {
-            session.setAttribute("isLoggedIn" , "Yes");
-            session.setAttribute("name" , user.getName() );
-            session.setAttribute("email" , user.getEmail() );
-            session.setAttribute( "userId" , user.getId() );
+            setupSession(session , user);
         }
 
         return "redirect:/home";
     }
 
+    public void setupSession( HttpSession session , User user){
+        session.setAttribute("isLoggedIn" , "Yes");
+        session.setAttribute("name" , user.getName() );
+        session.setAttribute("email" , user.getEmail() );
+        session.setAttribute( "userId" , user.getId() );
+    }
 
     @PostMapping("/loginsubmit")
-    public String loginsubmit( Model model , @Valid User user , BindingResult result ){
+    public String loginsubmit( Model model , @Valid User user , BindingResult result , HttpSession session ){
         if(result.hasErrors()){
             List<ObjectError> ll =  result.getAllErrors();
             String err = "";
@@ -141,6 +161,7 @@ public class UserController {
         LoginResponse loginResponse = userService.login(user);
 
         if(loginResponse.getStatus().equals("success")){
+            setupSession(session , user);
             return "redirect:/home";
         } else {
             return "redirect:/login?message="+loginResponse.getMessage();
@@ -148,5 +169,37 @@ public class UserController {
 
     }
 
+
+    @PostMapping("/uploadcv")
+    public String uploadcv( Model model, HttpSession session , @RequestParam("resumefile") MultipartFile file ) throws IOException {
+
+        String mylocation = System.getProperty("user.dir") + "/src/main/resources/static/";
+
+        String filename = file.getOriginalFilename();
+
+        File mySavedFile = new File( mylocation + filename);
+
+        InputStream inputStream = file.getInputStream();
+
+        OutputStream outputStream = new FileOutputStream(mySavedFile);
+
+        int read = 0;
+        byte[] bytes = new byte[1024];
+
+        while ((read = inputStream.read(bytes)) != -1){
+            outputStream.write(bytes , 0 , read);
+        }
+
+        String mylink = "http://localhost:"+ port + "/" + filename;
+
+        User user = new User();
+
+        Long id = (Long) session.getAttribute("userId");
+        user.setId( id );
+
+        userService.update(id , mylink);
+
+        return "redirect:/home";
+    }
 
 }
