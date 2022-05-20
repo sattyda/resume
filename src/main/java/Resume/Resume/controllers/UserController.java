@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
 import java.util.ArrayList;
@@ -66,8 +67,24 @@ public class UserController {
 
 
     @GetMapping("/home")
-    public String home( Model model ){
+    public String home(Model model , HttpSession session){
+        if(session.getAttribute("isLoggedIn") == null || session.getAttribute("isLoggedIn").equals("No") ){
+            return "redirect:/";
+        }
+
+        model.addAttribute("name" , session.getAttribute("name"));
+        model.addAttribute("email" , session.getAttribute("email"));
+
         return "home";
+    }
+
+
+    @GetMapping("/upload")
+    public String upload(Model model , HttpSession session){
+        if(session.getAttribute("isLoggedIn") == null || session.getAttribute("isLoggedIn").equals("No") ){
+            return "redirect:/";
+        }
+        return "upload";
     }
 
     @PostMapping("/submit")
@@ -78,7 +95,7 @@ public class UserController {
     }
 
     @PostMapping("/save")
-    public String save( Model model , @Valid User user , BindingResult result ){
+    public String save( Model model , @Valid User user , BindingResult result , HttpSession session ){
         if(result.hasErrors()){
             List<ObjectError> ll =  result.getAllErrors();
             String err = "";
@@ -90,9 +107,21 @@ public class UserController {
 
             return "redirect:/register?message="+err;
         }
-        userService.save(user);
-        model.addAttribute("id" , user.getId()+"hi" );
-        return "save";
+
+        if(userService.isExist(user.getEmail())){
+            return "redirect:/register?message="+"Email already registered. Please login or use different mail";
+        }
+
+        if(!userService.save(user )){
+            return "redirect:/register?message="+"Something went wrong. Maybe duplicate entry for user";
+        } else {
+            session.setAttribute("isLoggedIn" , "Yes");
+            session.setAttribute("name" , user.getName() );
+            session.setAttribute("email" , user.getEmail() );
+            session.setAttribute( "userId" , user.getId() );
+        }
+
+        return "redirect:/home";
     }
 
 
@@ -103,7 +132,6 @@ public class UserController {
             String err = "";
 
             for( int i =0; i < ll.size(); i++  ){
-
                 err = err + ll.get(i).getDefaultMessage() + "___" ;
             }
 

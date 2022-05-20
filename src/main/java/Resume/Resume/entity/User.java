@@ -28,6 +28,5 @@ public class User {
     String password;
 
     String resume;
-
-
 }
+//// --- 100 --== ram == processor ==

@@ -13,8 +13,14 @@ public class UserService {
     @Autowired
     UserRepository userRepository;
 
-    public void save(User user) {
-        userRepository.save(user);
+    public boolean save(User user) {
+        try {
+            userRepository.save(user);
+            return true;
+        } catch (Exception e){
+            return false;
+        }
+
     }
 
     public LoginResponse login(User user) {
@@ -40,5 +46,15 @@ public class UserService {
             return loginResponse;
         }
 
+    }
+
+    public boolean isExist(String email) {
+        List<User> users = userRepository.findByEmail(email);
+
+        if(users.size() > 0){
+            return true;
+        }
+
+        return false;
     }
 }
