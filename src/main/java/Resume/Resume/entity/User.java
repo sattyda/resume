@@ -27,6 +27,12 @@ public class User {
     @Size( min = 4 , max = 20 , message = "Password must have minimum 4 and max 20 characters")
     String password;
 
+    String username;
+
+    Boolean enabled = true;
+
+    String role = "USER";
+
     String resume;
 }
 //// --- 100 --== ram == processor ==

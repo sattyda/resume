@@ -6,23 +6,27 @@ import Resume.Resume.entity.User;
 import Resume.Resume.services.UserService;
 import lombok.Value;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.validation.beanvalidation.SpringValidatorAdapter;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 public class UserController {
@@ -38,10 +42,13 @@ public class UserController {
         return "index";
     }
 
-    @GetMapping("/logout")
-    public String logout( HttpSession session ){
-        session.invalidate();
-        return "redirect:/home";
+    @RequestMapping(value="/logout", method = RequestMethod.GET)
+    public String logoutPage (HttpServletRequest request, HttpServletResponse response) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null){
+            new SecurityContextLogoutHandler().logout(request, response, auth);
+        }
+        return "redirect:/login?logout";
     }
 
     @GetMapping("/register")
@@ -63,33 +70,19 @@ public class UserController {
     }
 
     @GetMapping("/login")
-    public String adminlogin(Model model , MyError myError , HttpSession session ){
+    public String adminlogin(Model model , @RequestParam("error") Optional<String> err ){
 
-        if(session.getAttribute("isLoggedIn") != null && session.getAttribute("isLoggedIn").equals("Yes") ){
-            return "redirect:/home";
+        if(err.isPresent()){
+            model.addAttribute("error" , "Invalid Credentials!");
         }
-
-        String[] arr = {};
-
-        System.out.println( myError.getMessage() );
-        if(!    myError.getMessage().equals("")){
-            arr = myError.getMessage().split("___");
-        }
-
-        model.addAttribute("error" , arr);
 
         return "login";
     }
 
 
     @GetMapping("/home")
-    public String home(Model model , HttpSession session){
-        if(session.getAttribute("isLoggedIn") == null || session.getAttribute("isLoggedIn").equals("No") ){
-            return "redirect:/";
-        }
+    public String home(Model model){
 
-        model.addAttribute("name" , session.getAttribute("name"));
-        model.addAttribute("email" , session.getAttribute("email"));
 
         return "home";
     }
@@ -128,6 +121,13 @@ public class UserController {
         if(userService.isExist(user.getEmail())){
             return "redirect:/register?message="+"Email already registered. Please login or use different mail";
         }
+
+        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+
+        String hashKey = bCryptPasswordEncoder.encode( user.getPassword() );
+
+        user.setPassword( hashKey );
+
 
         if(!userService.save(user )){
             return "redirect:/register?message="+"Something went wrong. Maybe duplicate entry for user";
