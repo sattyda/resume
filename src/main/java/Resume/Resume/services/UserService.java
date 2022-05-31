@@ -6,6 +6,7 @@ import Resume.Resume.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
 @Service
@@ -13,6 +14,7 @@ public class UserService {
     @Autowired
     UserRepository userRepository;
 
+    @Transactional
     public boolean save(User user) {
         try {
             userRepository.save(user);
@@ -58,7 +60,18 @@ public class UserService {
         return false;
     }
 
-    public void update(Long id, String mylink) {
-        userRepository.update( mylink , id);
+    public void update(String username, String mylink) {
+
+        List<User> users = userRepository.findAllByUsername(username);
+
+        User loggUSer = users.get(0);
+
+        loggUSer.setResume( mylink );
+
+        userRepository.save(loggUSer);
+    }
+
+    public List<User> getall() {
+        return userRepository.findAll();
     }
 }

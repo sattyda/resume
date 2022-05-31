@@ -12,19 +12,20 @@ import javax.validation.constraints.Size;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
 
-    @Size( min = 4 , max = 20 , message = "Name must have minimum 4 and max 20 characters")
+    @Size( min = 4 , max = 20 , message = "Name Error! must have minimum 4 and max 20 characters")
     String name;
 
-    @Email( message = "Invalid Email")
+    @Email( message = "Email Error!")
     @Column( unique = true )
     String email;
 
-    @Size( min = 4 , max = 20 , message = "Password must have minimum 4 and max 20 characters")
+    @Size( min = 4 , message = "Password Error! must have minimum 4 and max 20 characters")
     String password;
 
     String username;

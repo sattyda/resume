@@ -27,5 +27,9 @@
         <li th:text="${err}"></li><br/>
     </ul>
 
+    <script th:each="input : ${inputError}">
+        document.getElementsByName("[[${input}]]")[0].style.border = "1px solid red";
+    </script>
+
 </body>
 </html>

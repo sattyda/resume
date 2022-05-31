@@ -24,8 +24,10 @@ import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
 import java.io.*;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 @Controller
@@ -54,18 +56,26 @@ public class UserController {
     @GetMapping("/register")
     public String register(Model model , MyError myError , HttpSession session){
 
-        if(session.getAttribute("isLoggedIn") != null && session.getAttribute("isLoggedIn").equals("Yes") ){
-            return "redirect:/home";
-        }
-
         String[] arr = {};
 
         System.out.println( myError.getMessage() );
+
         if(!    myError.getMessage().equals("")){
             arr = myError.getMessage().split("___");
         }
 
+        String[] inputErrors = new String[arr.length];
+
+        for( int i = 0; i < arr.length ; i++ ){
+            String[] errorExplode = arr[i].split(" ");
+            inputErrors[i] = errorExplode[0].toLowerCase();
+        }
+
+
+
         model.addAttribute("error" , arr);
+
+        model.addAttribute("inputError" , inputErrors);
         return "register";
     }
 
@@ -83,16 +93,12 @@ public class UserController {
     @GetMapping("/home")
     public String home(Model model){
 
-
         return "home";
     }
 
 
     @GetMapping("/upload")
-    public String upload(Model model , HttpSession session){
-        if(session.getAttribute("isLoggedIn") == null || session.getAttribute("isLoggedIn").equals("No") ){
-            return "redirect:/";
-        }
+    public String upload(Model model ){
 
         return "upload";
     }
@@ -119,7 +125,7 @@ public class UserController {
         }
 
         if(userService.isExist(user.getEmail())){
-            return "redirect:/register?message="+"Email already registered. Please login or use different mail";
+            return "redirect:/register?message="+"Email Error! already registered. Please login or use different mail";
         }
 
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
@@ -128,11 +134,14 @@ public class UserController {
 
         user.setPassword( hashKey );
 
+        boolean checker = userService.save( user );
 
-        if(!userService.save(user )){
-            return "redirect:/register?message="+"Something went wrong. Maybe duplicate entry for user";
+        System.out.println(checker);
+
+        if( !checker ){
+            return "redirect:/register?message="+"Generic Error! Something went wrong. Maybe duplicate entry for user";
         } else {
-            setupSession(session , user);
+
         }
 
         return "redirect:/home";
@@ -171,35 +180,37 @@ public class UserController {
 
 
     @PostMapping("/uploadcv")
-    public String uploadcv( Model model, HttpSession session , @RequestParam("resumefile") MultipartFile file ) throws IOException {
+    public String uploadcv(Model model, Principal principal, HttpSession session , @RequestParam("resumefile") MultipartFile file ) throws IOException {
 
         String mylocation = System.getProperty("user.dir") + "/src/main/resources/static/";
-
         String filename = file.getOriginalFilename();
-
         File mySavedFile = new File( mylocation + filename);
-
         InputStream inputStream = file.getInputStream();
-
         OutputStream outputStream = new FileOutputStream(mySavedFile);
 
         int read = 0;
         byte[] bytes = new byte[1024];
-
         while ((read = inputStream.read(bytes)) != -1){
             outputStream.write(bytes , 0 , read);
         }
 
         String mylink = "http://localhost:"+ port + "/" + filename;
 
-        User user = new User();
 
-        Long id = (Long) session.getAttribute("userId");
-        user.setId( id );
-
-        userService.update(id , mylink);
+        userService.update( principal.getName() , mylink);
 
         return "redirect:/home";
     }
+
+
+    @RequestMapping(value = "/admin" )
+    public String admin(Model model ){
+
+        List<User> users = userService.getall();
+
+        model.addAttribute( "users" , users );
+        return "admin";
+    }
+
 
 }
