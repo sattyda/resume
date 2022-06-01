@@ -24,7 +24,6 @@ public class ApiSecurity extends UsernamePasswordAuthenticationFilter {
         this.authenticationManager = authenticationManager;
     }
 
-
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         String username = request.getParameter("username");
@@ -48,12 +47,13 @@ public class ApiSecurity extends UsernamePasswordAuthenticationFilter {
         String refresh_token = JWT.create()
                 .withSubject(userDetails.getUsername())
                 .withIssuer( request.getRequestURL().toString() )
-                .withExpiresAt( new Date( System.currentTimeMillis() + 1*60*60*1000 ))
+                .withExpiresAt( new Date( System.currentTimeMillis() + 10*60*60*1000 ))
                 .sign(algorithm);
 
 
         response.setHeader("access_token" , access_token);
         response.setHeader("refresh_token" , refresh_token);
+
 
     }
 }

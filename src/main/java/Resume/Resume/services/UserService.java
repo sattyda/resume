@@ -22,7 +22,6 @@ public class UserService {
         } catch (Exception e){
             return false;
         }
-
     }
 
     public LoginResponse login(User user) {

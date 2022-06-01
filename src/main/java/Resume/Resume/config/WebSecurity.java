@@ -34,7 +34,6 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
                 .permitAll()
                 .and()
                 .addFilter(new ApiSecurity(authenticationManagerBean()));
-
     }
 
     @Autowired
