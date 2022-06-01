@@ -32,7 +32,7 @@ public class User {
 
     Boolean enabled = true;
 
-    String role = "USER";
+    String role;
 
     String resume;
 }

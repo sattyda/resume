@@ -6,6 +6,7 @@ import Resume.Resume.entity.User;
 import Resume.Resume.services.UserService;
 import lombok.Value;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -29,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+
 
 @Controller
 public class UserController {
@@ -91,10 +93,12 @@ public class UserController {
 
 
     @GetMapping("/home")
-    public String home(Model model){
+    public String home(Model model , Principal principal){
 
+        System.out.println(  );
         return "home";
     }
+
 
 
     @GetMapping("/upload")

@@ -13,14 +13,14 @@
         <input type="text" name="name" class="input form-control" placeholder="Name" /> <br/>
         <input type="text" name="email" class="input form-control" placeholder="email" /> <br/>
         <input type="text" name="password" class="input form-control" placeholder="password" /> <br/>
+        <label><input type="radio" name="role" value="USER"  />USER</label><br/>
+        <label><input type="radio" name="role" value="ADMIN"  />ADMIN</label><br/>
 
         <input type="hidden"
                th:name="${_csrf.parameterName}"
                th:value="${_csrf.token}" />
 
         <input type="submit" value="Submit" class="btn btn-primary"/>
-
-
     </form>
 
     <ul th:each="err : ${error}">
