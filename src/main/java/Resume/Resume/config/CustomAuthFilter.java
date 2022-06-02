@@ -7,6 +7,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import org.apache.tomcat.util.http.parser.Authorization;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -15,6 +16,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
@@ -45,8 +49,19 @@ public class CustomAuthFilter extends OncePerRequestFilter {
 
                         String username = decodedJWT.getSubject();
 
+                        List<GrantedAuthority> list = new ArrayList<>();
+
+                        GrantedAuthority grantedAuthority = new GrantedAuthority() {
+                            @Override
+                            public String getAuthority() {
+                                return "ROLE_USER";
+                            }
+                        };
+
+                        list.add(grantedAuthority);
+                        
                         UsernamePasswordAuthenticationToken authenticationToken =
-                                new UsernamePasswordAuthenticationToken(username , null    );
+                                new UsernamePasswordAuthenticationToken(username , null  , list  );
 
                         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 

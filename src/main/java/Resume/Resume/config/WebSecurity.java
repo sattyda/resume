@@ -44,7 +44,9 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 
         http.authorizeRequests().antMatchers("/api/register").permitAll();
 
-        http.authorizeRequests().anyRequest().permitAll();
+        http.authorizeRequests().antMatchers("/api/secured/**").hasAuthority("ROLE_USER");
+
+        http.authorizeRequests().anyRequest().authenticated();
 
         http.addFilter(new ApiSecurity(authenticationManagerBean()));
 

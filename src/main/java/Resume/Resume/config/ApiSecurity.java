@@ -7,6 +7,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -15,9 +16,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -43,10 +42,15 @@ public class ApiSecurity extends UsernamePasswordAuthenticationFilter {
 
         Algorithm algorithm = Algorithm.HMAC512( "sattyda".getBytes());
 
+        List<String> list = new ArrayList<>();
+
+        list.add("ROLE_USER");
+
         String access_token = JWT.create()
                 .withSubject(userDetails.getUsername())
                 .withIssuer( request.getRequestURL().toString() )
-                .withExpiresAt( new Date( System.currentTimeMillis()))
+                .withClaim("roles" , list)
+                .withExpiresAt( new Date( System.currentTimeMillis() + 10*60*60*1000))
                 .sign(algorithm);
 
         String refresh_token = JWT.create()
