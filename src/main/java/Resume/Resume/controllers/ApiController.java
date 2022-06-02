@@ -2,9 +2,17 @@ package Resume.Resume.controllers;
 
 import Resume.Resume.entity.User;
 import Resume.Resume.services.UserService;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
@@ -14,8 +22,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.util.List;
+import java.io.IOException;
+import java.util.*;
+
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
 public class ApiController {
@@ -76,4 +90,43 @@ public class ApiController {
         return new ResponseEntity<>("I was Called" , HttpStatus.OK);
     }
 
+    @PostMapping("/api/secured/refresh")
+    public void refreshToken(HttpServletRequest request, HttpServletResponse response ) throws IOException {
+        String authHeader = request.getHeader(AUTHORIZATION);
+
+        if( authHeader == null ){
+            response.setHeader("error" , "Not Token");
+            response.sendError( 403 );
+        } else {
+            if( !authHeader.substring(0 ,7 ).equals("Bearer ") ){
+                response.setHeader("Error", "Invalid Token Type");
+                response.sendError( 403 );
+            } else {
+                try {
+                    String token = authHeader.substring( "Bearer ".length() );
+                    Algorithm algorithm = Algorithm.HMAC512( "sattyda".getBytes());
+                    JWTVerifier verifier = JWT.require(algorithm).build();
+                    DecodedJWT decodedJWT = verifier.verify(token);
+                    String username = decodedJWT.getSubject();
+                    List<String> list = new ArrayList<>();
+                    list.add("ROLE_USER");
+                    String access_token = JWT.create()
+                            .withSubject(username)
+                            .withIssuer( request.getRequestURL().toString() )
+                            .withClaim("roles" , list)
+                            .withExpiresAt( new Date( System.currentTimeMillis() + 10*60*60*1000))
+                            .sign(algorithm);
+
+                    Map<String, String> map = new HashMap<>();
+                    map.put( "access_token" , access_token);
+                    response.setContentType(APPLICATION_JSON_VALUE);
+                    new ObjectMapper().writeValue(response.getOutputStream(), map);
+                } catch (Exception e){
+                    response.setHeader("error", "Token Invalid");
+                    response.setHeader("cachedError", e.getMessage());
+                    response.sendError( 403 );
+                }
+            }
+        }
+    }
 }

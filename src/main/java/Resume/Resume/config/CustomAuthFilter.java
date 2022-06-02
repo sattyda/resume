@@ -26,7 +26,7 @@ public class CustomAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if( !request.getRequestURL().isEmpty() && (request.getServletPath().equals("/login") || request.getServletPath().equals("/api/profile")) ){
+        if( !request.getRequestURL().isEmpty() && (request.getServletPath().equals("/login") || request.getServletPath().equals("/api/profile") || request.getServletPath().equals("/api/secured/refresh")) ){
             filterChain.doFilter(request , response);
         } else {
             String authHeader = request.getHeader(AUTHORIZATION);
