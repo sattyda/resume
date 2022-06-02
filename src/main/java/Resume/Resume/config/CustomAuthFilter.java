@@ -49,17 +49,23 @@ public class CustomAuthFilter extends OncePerRequestFilter {
 
                         String username = decodedJWT.getSubject();
 
+
+
                         List<GrantedAuthority> list = new ArrayList<>();
 
-                        GrantedAuthority grantedAuthority = new GrantedAuthority() {
-                            @Override
-                            public String getAuthority() {
-                                return "ROLE_USER";
-                            }
-                        };
+                        String[] myroles =   decodedJWT.getClaim("roles").asArray(String.class);
 
-                        list.add(grantedAuthority);
-                        
+                        for (String role : myroles) {
+                            GrantedAuthority grantedAuthority = new GrantedAuthority() {
+                                @Override
+                                public String getAuthority() {
+                                    return role;
+                                }
+                            };
+
+                            list.add(grantedAuthority);
+                        }
+
                         UsernamePasswordAuthenticationToken authenticationToken =
                                 new UsernamePasswordAuthenticationToken(username , null  , list  );
 

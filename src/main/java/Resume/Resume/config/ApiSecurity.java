@@ -46,6 +46,7 @@ public class ApiSecurity extends UsernamePasswordAuthenticationFilter {
 
         list.add("ROLE_USER");
 
+
         String access_token = JWT.create()
                 .withSubject(userDetails.getUsername())
                 .withIssuer( request.getRequestURL().toString() )
