@@ -73,4 +73,15 @@ public class UserService {
     public List<User> getall() {
         return userRepository.findAll();
     }
+
+    public String getResume(String username) {
+
+        List<User> users = userRepository.findAllByUsername(username);
+
+        if(users.isEmpty()){
+            return "No Resume for YOU";
+        } else {
+            return users.get(0).getResume();
+        }
+    }
 }

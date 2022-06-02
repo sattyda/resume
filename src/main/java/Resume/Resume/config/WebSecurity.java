@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import javax.sql.DataSource;
 
@@ -23,17 +24,31 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
-        http
-                .csrf()
-                .disable()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authorizeRequests()
-                .anyRequest()
-                .permitAll()
-                .and()
-                .addFilter(new ApiSecurity(authenticationManagerBean()));
+//        http
+//                .csrf()
+//                .disable()
+//                .sessionManagement()
+//                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+//                .and()
+//                .authorizeRequests()
+//                .anyRequest()
+//                .permitAll()
+//                .and()
+//                .addFilter(new ApiSecurity(authenticationManagerBean()));
+
+
+
+        http.csrf().disable();
+
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
+        http.authorizeRequests().antMatchers("/api/register").permitAll();
+
+        http.authorizeRequests().anyRequest().permitAll();
+
+        http.addFilter(new ApiSecurity(authenticationManagerBean()));
+
+        http.addFilterBefore( new CustomAuthFilter() , UsernamePasswordAuthenticationFilter.class);
     }
 
     @Autowired

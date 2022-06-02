@@ -9,6 +9,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -55,9 +56,11 @@ public class ApiController {
     }
 
     @PostMapping("/api/secured/resume")
-    public ResponseEntity<String> resume( User user){
+    public ResponseEntity<String> resume(@RequestParam String username){
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        String resume = userService.getResume(username);
+
+        return new ResponseEntity<>( resume , HttpStatus.OK);
     }
 
     @PostMapping("/api/secured/profile")
